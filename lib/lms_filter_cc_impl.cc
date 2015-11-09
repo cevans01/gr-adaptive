@@ -22,59 +22,121 @@
 #include "config.h"
 #endif
 
-#include <gnuradio/io_signature.h>
 #include "lms_filter_cc_impl.h"
+#include <gnuradio/io_signature.h>
+#include <gnuradio/misc.h>
+#include <volk/volk.h>
 
 namespace gr {
-  namespace adaptive {
+namespace adaptive {
 
-    lms_filter_cc::sptr
-    lms_filter_cc::make(int num_taps, float mu)
-    {
-      return gnuradio::get_initial_sptr
-        (new lms_filter_cc_impl(num_taps, mu));
+using namespace filter::kernel;
+
+lms_filter_cc::sptr lms_filter_cc::make(int num_taps, float mu, int sps)
+{
+    return gnuradio::get_initial_sptr (new lms_filter_cc_impl(num_taps, mu, sps));
+}
+
+lms_filter_cc_impl::lms_filter_cc_impl(int num_taps, float mu, int sps):
+    sync_decimator("lms_filter_cc",
+        gr::io_signature::make(2, 2, sizeof(gr_complex)),
+        gr::io_signature::make(1, 1, sizeof(gr_complex)),
+        sps),
+    fir_filter_ccc(sps, std::vector<gr_complex>(num_taps, gr_complex(0,0))),
+	_new_taps(num_taps, gr_complex(0,0)),
+	_updated(false)
+{
+    set_mu(mu);
+    if(num_taps > 0) {
+	    _new_taps[0] = 1.0;
+    }
+    fir_filter_ccc::set_taps(_new_taps);
+
+    const int alignment_multiple = volk_get_alignment() / sizeof(gr_complex);
+    set_alignment(std::max(1,alignment_multiple));
+
+    set_history(num_taps);
+}
+
+lms_filter_cc_impl::~lms_filter_cc_impl()
+{
+}
+
+gr_complex lms_filter_cc_impl::error(const gr_complex& decision, const gr_complex& estimate)
+{
+    gr_complex error = decision - estimate;
+    return error;
+}
+
+void lms_filter_cc_impl::update_tap(gr_complex &tap, const gr_complex &in)
+{
+    tap += _mu*in*conj(_error);
+}
+
+std::vector<gr_complex> lms_filter_cc_impl::get_taps() const
+{
+    return d_taps;
+}
+
+void lms_filter_cc_impl::set_taps(const std::vector<gr_complex> &taps)
+{
+    _new_taps = taps;
+    _updated = true;
+}
+
+float lms_filter_cc_impl::get_mu() const
+{
+    return _mu;
+}
+
+void lms_filter_cc_impl::set_mu(float mu)
+{
+    _mu = mu;
+}
+
+
+
+int lms_filter_cc_impl::work (int noutput_items,
+       gr_vector_const_void_star &input_items,
+       gr_vector_void_star &output_items)
+{
+    const gr_complex *soi_snoi = (const gr_complex *) input_items[0];
+    const gr_complex *snoi = (const gr_complex *) input_items[1];
+    gr_complex *out = (gr_complex *) output_items[0];
+    gr_complex estimate;
+
+    if(_updated) {
+        // History requirements may have changed.
+        d_taps = _new_taps;
+        set_history(d_taps.size());
+        _updated = false;
+        return 0;
     }
 
-    /*
-     * The private constructor
-     */
-    lms_filter_cc_impl::lms_filter_cc_impl(int num_taps, float mu)
-      : gr::block("lms_filter_cc",
-              gr::io_signature::make(2, 2, sizeof(gr_complex)),
-              gr::io_signature::make(1, 1, sizeof(gr_complex)))
-    {}
 
-    /*
-     * Our virtual destructor.
-     */
-    lms_filter_cc_impl::~lms_filter_cc_impl()
-    {
+    // TODO: make decimation work
+    //int j = 0;
+    size_t k, l = d_taps.size();
+    for(int i = 0; i < noutput_items; i++) {
+        estimate = filter(&snoi[i]);
+
+        // Adjust taps
+        _error = error(soi_snoi[i], estimate);
+        for(k = 0; k < l; k++) {
+            // Update tap locally from error.
+            update_tap(d_taps[k], snoi[i+k]);
+
+            // Update aligned taps in filter object.
+            fir_filter_ccc::update_tap(d_taps[k], k);
+        }
+        out[i] = _error;
+        //j += decimation();
     }
 
-    void
-    lms_filter_cc_impl::forecast (int noutput_items, gr_vector_int &ninput_items_required)
-    {
-        ninput_items_required[0] = noutput_items;
-    }
+    // Tell runtime system how many output items we produced.
+    return noutput_items;
+}
 
-    int
-    lms_filter_cc_impl::general_work (int noutput_items,
-                       gr_vector_int &ninput_items,
-                       gr_vector_const_void_star &input_items,
-                       gr_vector_void_star &output_items)
-    {
-        const gr_complex *in = (const gr_complex *) input_items[0];
-        gr_complex *out = (gr_complex *) output_items[0];
-
-        // Do <+signal processing+>
-        // Tell runtime system how many input items we consumed on
-        // each input stream.
-        consume_each (noutput_items);
-
-        // Tell runtime system how many output items we produced.
-        return noutput_items;
-    }
-
-  } /* namespace adaptive */
+} /* namespace adaptive */
 } /* namespace gr */
 

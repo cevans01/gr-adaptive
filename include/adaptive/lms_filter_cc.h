@@ -23,7 +23,7 @@
 #define INCLUDED_ADAPTIVE_LMS_FILTER_CC_H
 
 #include <adaptive/api.h>
-#include <gr_sync_decimator.h>
+#include <gnuradio/sync_decimator.h>
 
 namespace gr {
 namespace adaptive {
@@ -33,11 +33,11 @@ namespace adaptive {
  * \ingroup adaptive
  *
  */
-class ADAPTIVE_API lms_filter_cc : virtual public gr_sync_decimator
+class ADAPTIVE_API lms_filter_cc : virtual public sync_decimator
 {
     protected:
-    virtual gr_complex error(const gr_complex& out) = 0;
-    virtual void update_taps(std::vector<gr_complex>& taps, const std::vector<gr_complex>& in) = 0;
+    virtual gr_complex error(const gr_complex& decision, const gr_complex& estimate) = 0;
+    virtual void update_tap(gr_complex &tap, const gr_complex &in) = 0;
 
     public:
     typedef boost::shared_ptr<lms_filter_cc> sptr;
@@ -50,7 +50,7 @@ class ADAPTIVE_API lms_filter_cc : virtual public gr_sync_decimator
     * class. adaptive::lms_filter_cc::make is the public interface for
     * creating new instances.
     */
-    static sptr make(int num_taps, float mu);
+    static sptr make(int num_taps, float mu, int sps);
     virtual std::vector<gr_complex> get_taps() const = 0;
     virtual void set_taps(const std::vector<gr_complex> &taps) = 0;
     virtual float get_mu() const = 0;

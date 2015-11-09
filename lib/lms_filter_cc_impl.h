@@ -22,6 +22,7 @@
 #define INCLUDED_ADAPTIVE_LMS_FILTER_CC_IMPL_H
 
 #include <adaptive/lms_filter_cc.h>
+#include <gnuradio/filter/fir_filter.h>
 
 namespace gr {
 namespace adaptive {
@@ -35,12 +36,12 @@ class lms_filter_cc_impl : public lms_filter_cc, filter::kernel::fir_filter_ccc
     float _mu;
 
     protected:
-    gr_complex error(const gr_complex& out);
-    void update_taps(std::vector<gr_complex>& taps, const std::vector<gr_complex>& in);
+    gr_complex error(const gr_complex& decision, const gr_complex& estimate);
+    void update_tap(gr_complex &tap, const gr_complex &in);
     
 
     public:
-    lms_filter_cc_impl(int num_taps, float mu);
+    lms_filter_cc_impl(int num_taps, float mu, int sps);
     ~lms_filter_cc_impl();
 
     std::vector<gr_complex> get_taps() const;
@@ -51,7 +52,6 @@ class lms_filter_cc_impl : public lms_filter_cc, filter::kernel::fir_filter_ccc
     int work(int noutput_items,
 	       gr_vector_const_void_star &input_items,
 	       gr_vector_void_star &output_items);
-    };
 
 };
 
