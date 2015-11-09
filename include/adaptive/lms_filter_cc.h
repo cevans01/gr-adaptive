@@ -23,33 +23,41 @@
 #define INCLUDED_ADAPTIVE_LMS_FILTER_CC_H
 
 #include <adaptive/api.h>
-#include <gnuradio/block.h>
+#include <gr_sync_decimator.h>
 
 namespace gr {
-  namespace adaptive {
+namespace adaptive {
+
+/*!
+ * \brief <+description of block+>
+ * \ingroup adaptive
+ *
+ */
+class ADAPTIVE_API lms_filter_cc : virtual public gr_sync_decimator
+{
+    protected:
+    virtual gr_complex error(const gr_complex& out) = 0;
+    virtual void update_taps(std::vector<gr_complex>& taps, const std::vector<gr_complex>& in) = 0;
+
+    public:
+    typedef boost::shared_ptr<lms_filter_cc> sptr;
 
     /*!
-     * \brief <+description of block+>
-     * \ingroup adaptive
-     *
-     */
-    class ADAPTIVE_API lms_filter_cc : virtual public gr::block
-    {
-     public:
-      typedef boost::shared_ptr<lms_filter_cc> sptr;
+    * \brief Return a shared_ptr to a new instance of adaptive::lms_filter_cc.
+    *
+    * To avoid accidental use of raw pointers, adaptive::lms_filter_cc's
+    * constructor is in a private implementation
+    * class. adaptive::lms_filter_cc::make is the public interface for
+    * creating new instances.
+    */
+    static sptr make(int num_taps, float mu);
+    virtual std::vector<gr_complex> get_taps() const = 0;
+    virtual void set_taps(const std::vector<gr_complex> &taps) = 0;
+    virtual float get_mu() const = 0;
+    virtual void set_mu(float mu) = 0;
+};
 
-      /*!
-       * \brief Return a shared_ptr to a new instance of adaptive::lms_filter_cc.
-       *
-       * To avoid accidental use of raw pointers, adaptive::lms_filter_cc's
-       * constructor is in a private implementation
-       * class. adaptive::lms_filter_cc::make is the public interface for
-       * creating new instances.
-       */
-      static sptr make(int num_taps, float mu);
-    };
-
-  } // namespace adaptive
+} // namespace adaptive
 } // namespace gr
 
 #endif /* INCLUDED_ADAPTIVE_LMS_FILTER_CC_H */

@@ -24,27 +24,38 @@
 #include <adaptive/lms_filter_cc.h>
 
 namespace gr {
-  namespace adaptive {
+namespace adaptive {
 
-    class lms_filter_cc_impl : public lms_filter_cc
-    {
-     private:
-      // Nothing to declare in this block.
+class lms_filter_cc_impl : public lms_filter_cc, filter::kernel::fir_filter_ccc
+{
+    private:
+    std::vector<gr_complex> _new_taps;
+    bool _updated;
+    gr_complex _error;
+    float _mu;
 
-     public:
-      lms_filter_cc_impl(int num_taps, float mu);
-      ~lms_filter_cc_impl();
+    protected:
+    gr_complex error(const gr_complex& out);
+    void update_taps(std::vector<gr_complex>& taps, const std::vector<gr_complex>& in);
+    
 
-      // Where all the action really happens
-      void forecast (int noutput_items, gr_vector_int &ninput_items_required);
+    public:
+    lms_filter_cc_impl(int num_taps, float mu);
+    ~lms_filter_cc_impl();
 
-      int general_work(int noutput_items,
-		       gr_vector_int &ninput_items,
-		       gr_vector_const_void_star &input_items,
-		       gr_vector_void_star &output_items);
+    std::vector<gr_complex> get_taps() const;
+    void set_taps(const std::vector<gr_complex> &taps);
+    float get_mu() const;
+    void set_mu(float mu);
+
+    int work(int noutput_items,
+	       gr_vector_const_void_star &input_items,
+	       gr_vector_void_star &output_items);
     };
 
-  } // namespace adaptive
+};
+
+} // namespace adaptive
 } // namespace gr
 
 #endif /* INCLUDED_ADAPTIVE_LMS_FILTER_CC_IMPL_H */
