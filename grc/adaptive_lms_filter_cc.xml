@@ -4,7 +4,8 @@
   <key>adaptive_lms_filter_cc</key>
   <category>adaptive</category>
   <import>import adaptive</import>
-  <make>adaptive.lms_filter_cc($num_taps, $mu)</make>
+  <make>adaptive.lms_filter_cc($num_taps, $mu, $sps)</make>
+  <callback>set_mu($mu)</callback>
   <!-- Make one 'param' node for every Parameter you want settable from the GUI.
        Sub-nodes:
        * name
