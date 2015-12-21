@@ -53,7 +53,7 @@ class ADAPTIVE_API lms_filter_cc : virtual public sync_decimator
     static sptr make(int num_taps, float mu, int sps);
     virtual std::vector<gr_complex> get_taps() const = 0;
     virtual void set_taps(const std::vector<gr_complex> &taps) = 0;
-    virtual float get_mu() const = 0;
+    virtual float mu() const = 0;
     virtual void set_mu(float mu) = 0;
 };
 

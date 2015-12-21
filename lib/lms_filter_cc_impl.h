@@ -34,6 +34,7 @@ class lms_filter_cc_impl : public lms_filter_cc, filter::kernel::fir_filter_ccc
     bool _updated;
     gr_complex _error;
     float _mu;
+    uint32_t _print_counter = 0;
 
     protected:
     gr_complex error(const gr_complex& decision, const gr_complex& estimate);
@@ -46,7 +47,8 @@ class lms_filter_cc_impl : public lms_filter_cc, filter::kernel::fir_filter_ccc
 
     std::vector<gr_complex> get_taps() const;
     void set_taps(const std::vector<gr_complex> &taps);
-    float get_mu() const;
+    void print_taps(const std::vector<gr_complex> &taps);
+    float mu() const;
     void set_mu(float mu);
 
     int work(int noutput_items,

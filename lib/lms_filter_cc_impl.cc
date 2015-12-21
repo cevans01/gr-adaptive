@@ -48,7 +48,7 @@ lms_filter_cc_impl::lms_filter_cc_impl(int num_taps, float mu, int sps):
 {
     set_mu(mu);
     if(num_taps > 0) {
-	    _new_taps[0] = 1.0;
+	    _new_taps[num_taps-1] = 0.95;
     }
     fir_filter_ccc::set_taps(_new_taps);
 
@@ -70,7 +70,12 @@ gr_complex lms_filter_cc_impl::error(const gr_complex& decision, const gr_comple
 
 void lms_filter_cc_impl::update_tap(gr_complex &tap, const gr_complex &in)
 {
-    tap += _mu*in*conj(_error);
+    //std::cout << "in update_tap" << std::endl;
+    gr_complex neg_one = -1.0;
+    //tap = neg_one * conj(conj(tap) - _mu*conj(in)*(_error));
+    tap = conj(conj(tap) + _mu*in*conj(_error));
+    //tap += _mu*in*conj(_error);
+    //tap += _mu*in*conj(_error);
 }
 
 std::vector<gr_complex> lms_filter_cc_impl::get_taps() const
@@ -84,13 +89,23 @@ void lms_filter_cc_impl::set_taps(const std::vector<gr_complex> &taps)
     _updated = true;
 }
 
-float lms_filter_cc_impl::get_mu() const
+void lms_filter_cc_impl::print_taps(const std::vector<gr_complex> &taps)
+{
+    std::cout << "Taps= [";
+    for(int i=0; i<taps.size()-2; i++) {
+        std::cout << taps[i] << ", ";
+    }
+    std::cout << taps[taps.size()-1] << "]" << std::endl;
+}
+
+float lms_filter_cc_impl::mu() const
 {
     return _mu;
 }
 
 void lms_filter_cc_impl::set_mu(float mu)
 {
+    std::cout << "setting mu=" << mu << std::endl;
     _mu = mu;
 }
 
@@ -131,6 +146,9 @@ int lms_filter_cc_impl::work (int noutput_items,
         }
         out[i] = _error;
         //j += decimation();
+    }
+    if (((_print_counter++)%1000) == 0) {
+        print_taps(d_taps);
     }
 
     // Tell runtime system how many output items we produced.
