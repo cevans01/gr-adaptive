@@ -22,5 +22,6 @@
 ########################################################################
 install(FILES
     api.h
-    lms_filter_cc.h DESTINATION include/adaptive
+    lms_filter_cc.h
+    normalized_lms_filter_cc.h DESTINATION include/adaptive
 )
