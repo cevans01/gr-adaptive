@@ -91,11 +91,15 @@ void lms_filter_cc_impl::set_taps(const std::vector<gr_complex> &taps)
 
 void lms_filter_cc_impl::print_taps(const std::vector<gr_complex> &taps)
 {
-    std::cout << "Taps= [";
+    //std::cout << "Taps= [";
+    /*
     for(int i=0; i<taps.size()-2; i++) {
         std::cout << taps[i] << ", ";
     }
-    std::cout << taps[taps.size()-1] << "]" << std::endl;
+    */
+    //std::cout << taps[taps.size()-1] << "]" << std::endl;
+    std::cout << "Num taps: " << std::endl;
+    std::cout << "  * " << taps.size() << std::endl;
 }
 
 float lms_filter_cc_impl::mu() const
@@ -147,7 +151,7 @@ int lms_filter_cc_impl::work (int noutput_items,
         out[i] = _error;
         //j += decimation();
     }
-    if (((_print_counter++)%1000) == 0) {
+    if (((_print_counter++)%10000) == 0) {
         print_taps(d_taps);
     }
 
