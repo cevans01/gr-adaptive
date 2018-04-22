@@ -1,9 +1,9 @@
 title: The ADAPTIVE OOT Module
-brief: Short description of gr-adaptive
+brief: Adaptive filters for co-channel interference cancellation
 tags: # Tags are arbitrary, but look at CGRAN what other authors are using
   - sdr
 author:
-  - Author Name <authors@email.address>
+  - Chris Evans <cevans3326@gmail.com>
 copyright_owner:
   - Copyright Owner 1
 license:
