@@ -43,13 +43,35 @@ class ADAPTIVE_API lms_filter_cc : virtual public sync_decimator
     typedef boost::shared_ptr<lms_filter_cc> sptr;
 
     /*!
-    * \brief Return a shared_ptr to a new instance of adaptive::lms_filter_cc.
-    *
-    * To avoid accidental use of raw pointers, adaptive::lms_filter_cc's
-    * constructor is in a private implementation
-    * class. adaptive::lms_filter_cc::make is the public interface for
-    * creating new instances.
-    */
+     * @brief Create a new instance of adaptive::lms_filter_cc
+     *
+     * This block does adaptive filtering for co-channel interference
+     * cancellation. The two inputs of this block are "SNOI" (Signal Not Of
+     * Interest) and SOI-SNOI (The sum of SNOI and the Signal Of Interest). The
+     * algorithm is a Least Means Squares filter, which is capable of
+     * subtracting out the SNOI from SOI-SNOI even if the interfering signal
+     * has a different phase, amplitude, or group delay. In fact, the group
+     * delay need not even be an integral sample delay--the algorithm will
+     * construct a subsample linear-phase delay filter if necessary to correct
+     * out sub-sample group delays.
+     *
+     * Note that the block cannot correct for group delays longer than
+     * (num_taps) / (sample_rate)
+     *
+     * The gradient descent parameter (mu) must be chosen carefully. If mu is
+     * too small, the filter will take a long time to converge on a solution,
+     * and will not be able to keep up with a changing channel. If mu is too
+     * large, the solution may never converge. Additionally, runaway is
+     * possible. If mu is too large, the FIR filter taps may grow unbounded.
+     * This will eventually cause floating point overflow, which will likely
+     * cause your gnuradio flowgraph to seem to halt. Consider using
+     * normalized_lms_filter_ccc if this is a strong concern.
+     *
+     *
+     * @param num_taps Number of taps for internal FIR filter
+     * @param mu Step-size for gradient descent
+     * @param sps Samples per second (currently unused, but may be an input to the FIR filter in the future)
+     */
     static sptr make(int num_taps, float mu, int sps);
     virtual std::vector<gr_complex> get_taps() const = 0;
     virtual void set_taps(const std::vector<gr_complex> &taps) = 0;
