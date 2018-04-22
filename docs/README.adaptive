@@ -8,7 +8,7 @@ This module exposes four blocks:
     * *(Least squres filter not implemented yet)*
     * *(Recursive Least Squares not implemented yet)*
 
-![lms filter](lms_filter.png "LMS Filter design")
+![lms filter](docs/lms_filter.png "LMS Filter design")
 
 
 The two inputs of each block are "SNOI" (Signal Not Of Interest) and SOI-SNOI
